@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مسابقة الضغط الأول</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container" id="name-screen">
+        <h2>أدخل اسمك</h2>
+        <input type="text" id="username" placeholder="اسمك هنا">
+        <div id="error-message" class="error hidden"></div>
+        <button onclick="submitName()">تأكيد</button>
+    </div>
+
+    <div class="container hidden" id="choice-screen">
+        <h2>مرحبًا <span id="display-name"></span></h2>
+        <button onclick="createRoom()">إنشاء غرفة</button>
+        <button onclick="showJoin()">الانضمام إلى غرفة</button>
+        <button class="back-btn" onclick="goBackToName()">العودة</button>
+    </div>
+
+    <div class="container hidden" id="join-screen">
+        <h2>أدخل الكود</h2>
+        <input type="text" id="room-code-input" placeholder="XXXXXX">
+        <div id="error-message" class="error hidden"></div>
+        <button onclick="joinRoom()">انضمام</button>
+        <button class="back-btn" onclick="goBackToChoice()">العودة</button>
+    </div>
+
+    <div class="container hidden" id="host-screen">
+        <h2>كود الغرفة:</h2>
+        <div id="room-code-container">
+            <span id="room-code"></span>
+            <button onclick="copyCode()" class="copy-btn">نسخ الكود</button>
+            <button onclick="toggleCodeVisibility()" id="toggle-code-btn">إخفاء الكود</button>
+        </div>
+        <h3>الأعضاء في الغرفة:</h3>
+        <div id="members-list"></div>
+        <p>آخر من ضغط: <span id="last-pressed">لا أحد</span></p>
+        <button onclick="resetBuzzer()">إعادة تعيين</button>
+        <button class="back-btn" onclick="goBackToChoice()">العودة</button>
+    </div>
+
+    <div class="container hidden" id="player-screen">
+        <div id="player-name-display"></div>
+        <h2>غرفة:</h2>
+        <div id="room-code-container">
+            <span id="player-room-code"></span>
+            <button onclick="copyCode()" class="copy-btn">نسخ الكود</button>
+        </div>
+        <button id="buzzer" onclick="pressBuzzer()">اضغط</button>
+        <p id="status">اضغط الزر عندما تكون جاهزًا</p>
+        <button class="back-btn" onclick="goBackToChoice()">العودة</button>
+    </div>
+
+    <footer>جميع الحقوق محفوظة © 2025 - تصميم وتطوير: عبدالعزيز الحربي</footer>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
+</body>
+</html>
