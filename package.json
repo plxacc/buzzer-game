@@ -6,7 +6,20 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.17.1",
-    "socket.io": "^4.5.0"
-  }
+    "express": "^4.21.2",
+    "socket.io": "^4.5.0",
+    "ws": "^8.18.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/plxacc/buzzer-game.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/plxacc/buzzer-game/issues"
+  },
+  "homepage": "https://github.com/plxacc/buzzer-game#readme",
+  "description": ""
 }
