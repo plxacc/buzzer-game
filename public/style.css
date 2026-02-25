@@ -1,206 +1,95 @@
 body {
     font-family: 'Tajawal', sans-serif;
-    background: linear-gradient(135deg, #6b48ff, #00d4ff);
-    min-height: 100vh;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
 }
 
-.container {
+/* الكارت الزجاجي الاحترافي */
+.custom-card {
     background: rgba(255, 255, 255, 0.95);
-    padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-    width: 90%;
-    max-width: 550px;
-    text-align: center;
-    backdrop-filter: blur(5px);
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border-top: 6px solid #4CAF50;
+    padding: 40px 30px;
+    width: 95%;
+    max-width: 500px;
+    animation: slideUp 0.4s ease-out;
 }
 
-h2 {
-    color: #333;
-    margin-bottom: 20px;
+/* إخفاء الشاشات (مهم جداً للبرمجة) */
+.hidden {
+    display: none !important;
 }
 
-input[type="text"] {
-    width: 80%;
-    padding: 10px;
-    margin: 10px 0;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    font-size: 16px;
-}
-
-button {
-    padding: 12px 30px;
-    margin: 10px;
-    border: none;
-    border-radius: 10px;
-    background: linear-gradient(90deg, #4CAF50, #66bb6a);
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-button:hover {
-    background: linear-gradient(90deg, #45a049, #5daf63);
-    transform: translateY(-2px);
-}
-
-.back-btn {
-    background: linear-gradient(90deg, #f44336, #ef5350);
-}
-
-.back-btn:hover {
-    background: linear-gradient(90deg, #d32f2f, #e53935);
-}
-
+/* تصميم الزر (البزر) ليكون ضخماً وجذاباً */
 #buzzer {
-    width: 180px;
-    height: 180px;
+    width: 220px;
+    height: 220px;
     border-radius: 50%;
-    background: linear-gradient(145deg, #ff4444, #ff8787);
+    background: linear-gradient(145deg, #ff4757, #ff6b81);
     color: white;
-    font-size: 28px;
-    border: none;
-    box-shadow: 0 0 25px rgba(255, 68, 68, 0.8);
-    transition: all 0.3s ease;
+    font-size: 40px;
+    font-weight: bold;
+    border: 8px solid white;
+    box-shadow: 0 0 30px rgba(255, 71, 87, 0.6), inset 0 -10px 20px rgba(0,0,0,0.2);
+    transition: all 0.15s ease;
     animation: pulse 1.5s infinite;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
-#buzzer:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 35px rgba(255, 68, 68, 1);
+#buzzer:active {
+    transform: scale(0.92);
+    box-shadow: 0 0 10px rgba(255, 71, 87, 0.6), inset 0 -15px 25px rgba(0,0,0,0.4);
 }
 
 #buzzer.pressed {
-    background: linear-gradient(145deg, #4CAF50, #81c784);
-    box-shadow: 0 0 25px rgba(76, 175, 80, 0.8);
-    transform: scale(0.95);
+    background: linear-gradient(145deg, #2ed573, #7bed9f);
+    box-shadow: 0 0 30px rgba(46, 213, 115, 0.8);
     animation: none;
+    transform: scale(0.95);
+    border-color: #f1f2f6;
 }
 
 #buzzer:disabled {
-    background: linear-gradient(145deg, #cccccc, #e0e0e0);
+    background: #ced6e0;
     box-shadow: none;
     animation: none;
     cursor: not-allowed;
+    border-color: #a4b0be;
+    color: #747d8c;
 }
 
+/* تأثير النبض للزر */
 @keyframes pulse {
-    0% { box-shadow: 0 0 20px rgba(255, 68, 68, 0.7); }
-    50% { box-shadow: 0 0 40px rgba(255, 68, 68, 1); }
-    100% { box-shadow: 0 0 20px rgba(255, 68, 68, 0.7); }
+    0% { box-shadow: 0 0 20px rgba(255, 71, 87, 0.5); }
+    50% { box-shadow: 0 0 50px rgba(255, 71, 87, 0.9); }
+    100% { box-shadow: 0 0 20px rgba(255, 71, 87, 0.5); }
 }
 
-.hidden {
-    display: none;
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-#members-list {
-    margin: 20px 0;
-    color: #555;
-    text-align: right;
-    padding-right: 20px;
+.ping-badge {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    font-size: 14px;
 }
 
-#members-list ul {
-    list-style-type: disc;
-    padding-right: 20px;
-}
-
-#members-list li {
-    margin: 5px 0;
-}
-
-#room-code-container {
-    margin: 10px 0;
-}
-
-#room-code.hidden-code {
-    filter: blur(5px);
+/* التمويه للكود */
+.hidden-code {
+    filter: blur(8px);
     user-select: none;
 }
 
-footer {
-    position: fixed;
-    bottom: 10px;
-    width: 100%;
-    text-align: center;
-    color: #fff;
-    font-size: 14px;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+.animate-pulse {
+    animation: pulse-alert 1s infinite;
 }
 
-.copy-btn {
-    padding: 8px 15px;
-    margin: 5px;
-    border: none;
-    border-radius: 8px;
-    background: linear-gradient(90deg, #2196F3, #42a5f5);
-    color: white;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.copy-btn:hover {
-    background: linear-gradient(90deg, #1976D2, #2196F3);
-}
-
-.host-label {
-    color: #2ecc71;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.host-name {
-    color: #27ae60;
-    font-weight: bold;
-}
-
-.players-label {
-    color: #3498db;
-    font-weight: bold;
-    margin-top: 10px;
-    margin-bottom: 5px;
-}
-
-.player-name {
-    color: #2980b9;
-}
-
-#player-name-display {
-    color: #2980b9;
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-
-.error {
-    color: #d32f2f;
-    font-size: 14px;
-    margin: 10px 0;
-}
-
-.fade-in {
-    animation: fadeIn 0.3s ease-in;
-}
-
-.fade-out {
-    animation: fadeOut 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
+@keyframes pulse-alert {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
 }

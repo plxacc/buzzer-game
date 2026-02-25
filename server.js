@@ -6,92 +6,102 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+// توجيه الخادم لقراءة ملفات الواجهة من مجلد public
 app.use(express.static('public'));
 
-const rooms = {};
-const users = {}; // لتتبع اسم المستخدم لكل socket.id
+const rooms = {}; // لتخزين بيانات الغرف
 
 io.on('connection', (socket) => {
-    console.log('مستخدم متصل:', socket.id);
+    // حساب البنق
+    socket.on('ping', (time) => {
+        socket.emit('pong', time);
+    });
 
+    // إنشاء غرفة
     socket.on('createRoom', (data) => {
-        const { userName } = data;
-        users[socket.id] = userName; // تخزين اسم المستخدم
-        const roomCode = Math.floor(100000 + Math.random() * 900000).toString();
-        rooms[roomCode] = { 
-            members: [userName], 
-            buzzerPressed: false, 
-            lastPressed: null 
-        };
+        const roomCode = data.existingCode || Math.floor(100000 + Math.random() * 900000).toString();
         socket.join(roomCode);
+        
+        if (!rooms[roomCode]) {
+            rooms[roomCode] = { 
+                host: socket.id, 
+                hostName: data.userName, 
+                members: [{ id: socket.id, name: data.userName, team: 'host' }],
+                buzzerPressed: false
+            };
+        } else {
+            rooms[roomCode].host = socket.id;
+            rooms[roomCode].members[0] = { id: socket.id, name: data.userName, team: 'host' };
+        }
+        
         socket.emit('roomCreated', { roomCode, members: rooms[roomCode].members });
     });
 
+    // الانضمام لغرفة
     socket.on('joinRoom', (data) => {
-        const { userName, roomCode } = data;
-        if (!rooms[roomCode]) {
-            socket.emit('error', { message: 'الغرفة غير موجودة، تأكد من إدخال الكود الصحيح.' });
-        } else if (rooms[roomCode].members.includes(userName)) {
-            socket.emit('error', { message: 'هذا الاسم مستخدم بالفعل في الغرفة، اختر اسمًا آخر.' });
-        } else {
-            users[socket.id] = userName; // تخزين اسم المستخدم
-            rooms[roomCode].members.push(userName);
+        const { userName, roomCode, team } = data;
+        if (rooms[roomCode]) {
             socket.join(roomCode);
-            io.to(roomCode).emit('updateMembers', rooms[roomCode].members);
+            rooms[roomCode].members = rooms[roomCode].members.filter(m => m.name !== userName);
+            rooms[roomCode].members.push({ id: socket.id, name: userName, team: team });
+            
             socket.emit('joinedRoom', { roomCode });
+            io.to(roomCode).emit('updateMembers', rooms[roomCode].members);
+        } else {
+            socket.emit('error', { message: 'الغرفة غير موجودة، تأكد من الكود.' });
         }
     });
 
+    // ضغط زر البزر
     socket.on('pressBuzzer', (data) => {
         const { userName, roomCode } = data;
         if (rooms[roomCode] && !rooms[roomCode].buzzerPressed) {
             rooms[roomCode].buzzerPressed = true;
-            rooms[roomCode].lastPressed = userName;
             io.to(roomCode).emit('buzzerPressed', { userName });
         }
     });
 
+    // إعادة تعيين البزر
     socket.on('resetBuzzer', (roomCode) => {
         if (rooms[roomCode]) {
             rooms[roomCode].buzzerPressed = false;
-            rooms[roomCode].lastPressed = null;
             io.to(roomCode).emit('buzzerReset');
         }
     });
 
-    socket.on('leaveRoom', (data) => {
-        const { userName, roomCode } = data;
-        if (rooms[roomCode]) {
-            rooms[roomCode].members = rooms[roomCode].members.filter(member => member !== userName);
-            socket.leave(roomCode);
-            io.to(roomCode).emit('updateMembers', rooms[roomCode].members);
-            if (rooms[roomCode].members.length === 0) {
-                delete rooms[roomCode];
-                console.log(`تم حذف الغرفة ${roomCode} لأنها أصبحت فارغة`);
-            }
+    // التحكم في مؤقت الهوست (10 ثواني)
+    let hostTimers = {};
+    socket.on('hostTimerAction', (data) => {
+        const { roomCode, action } = data;
+        if (action === 'start') {
+            if (hostTimers[roomCode]) clearInterval(hostTimers[roomCode]);
+            let timeLeft = 10;
+            io.to(roomCode).emit('hostTimerUpdate', timeLeft);
+            hostTimers[roomCode] = setInterval(() => {
+                timeLeft--;
+                io.to(roomCode).emit('hostTimerUpdate', timeLeft);
+                if (timeLeft <= 0) clearInterval(hostTimers[roomCode]);
+            }, 1000);
+        } else if (action === 'stop') {
+            if (hostTimers[roomCode]) clearInterval(hostTimers[roomCode]);
+        } else if (action === 'reset') {
+            if (hostTimers[roomCode]) clearInterval(hostTimers[roomCode]);
+            io.to(roomCode).emit('hostTimerUpdate', 10);
         }
     });
 
-    socket.on('disconnect', () => {
-        console.log('مستخدم انقطع:', socket.id);
-        const userName = users[socket.id];
-        if (userName) {
-            for (const roomCode in rooms) {
-                if (rooms[roomCode].members.includes(userName)) {
-                    rooms[roomCode].members = rooms[roomCode].members.filter(member => member !== userName);
-                    io.to(roomCode).emit('updateMembers', rooms[roomCode].members);
-                    if (rooms[roomCode].members.length === 0) {
-                        delete rooms[roomCode];
-                        console.log(`تم حذف الغرفة ${roomCode} لأنها أصبحت فارغة`);
-                    }
-                }
-            }
-            delete users[socket.id]; // حذف المستخدم من القائمة
+    // مغادرة الغرفة
+    socket.on('leaveRoom', (data) => {
+        const { userName, roomCode } = data;
+        if (rooms[roomCode]) {
+            socket.leave(roomCode);
+            rooms[roomCode].members = rooms[roomCode].members.filter(m => m.id !== socket.id);
+            io.to(roomCode).emit('updateMembers', rooms[roomCode].members);
         }
     });
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`الخادم يعمل على المنفذ ${PORT}`);
+    console.log(`الخادم يعمل بنجاح على المنفذ ${PORT}`);
 });
