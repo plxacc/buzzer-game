@@ -117,17 +117,17 @@ socket.on('joinedRoom', (data) => {
 
 socket.on('updateMembers', (members) => { updateMembers(members); });
 
+// ---- التعديل الشامل لنظام المؤقت والأصوات للجميع ----
 let buzzerInterval;
 socket.on('buzzerPressed', (data) => {
     const buzzer = document.getElementById('buzzer');
-    const sound = document.getElementById('buzzer-sound');
     
-    sound.currentTime = 0;
-    let playPromise = sound.play();
-    if (playPromise !== undefined) {
-        playPromise.catch(error => { console.log("المتصفح منع الصوت"); });
-    }
+    // 1. تشغيل صوت الضغط للكل (الهوست واللاعبين)
+    const pressSound = document.getElementById('buzzer-sound');
+    pressSound.currentTime = 0;
+    pressSound.play().catch(e => console.log("المتصفح يحتاج تفاعل لتشغيل الصوت"));
 
+    // 2. تحديث الشاشات
     if (!isHost) {
         buzzer.disabled = true;
         if (data.userName === userName) {
@@ -137,57 +137,68 @@ socket.on('buzzerPressed', (data) => {
             buzzer.textContent = "مقفول 🔒";
         }
         document.getElementById('status').innerHTML = `<strong class='text-danger'>${data.userName}</strong> ضغط الزر أولاً!`;
+        
+        // إظهار المؤقت للاعبين
+        document.getElementById('buzzer-timer-view').classList.remove('hidden');
+        document.getElementById('red-alert').classList.add('hidden');
+        document.getElementById('buzzer-timer-value').textContent = '4';
     } else {
         document.getElementById('last-pressed').textContent = data.userName;
+        
+        // إظهار المؤقت للهوست
+        document.getElementById('host-buzzer-timer-view').classList.remove('hidden');
+        document.getElementById('host-red-alert').classList.add('hidden');
+        document.getElementById('host-buzzer-timer-value').textContent = '4';
     }
 
-    // إظهار المؤقت للاعبين
-    let timeLeft = 3;
-    document.getElementById('buzzer-timer-view').classList.remove('hidden');
-    document.getElementById('red-alert').classList.add('hidden');
-    document.getElementById('buzzer-timer-value').textContent = timeLeft;
-    
-    // إظهار المؤقت للهوست (التحديث الجديد)
-    const hostTimerView = document.getElementById('host-buzzer-timer-view');
-    const hostTimerValue = document.getElementById('host-buzzer-timer-value');
-    if (hostTimerView) hostTimerView.classList.remove('hidden');
-    if (hostTimerValue) hostTimerValue.textContent = timeLeft;
-    
+    // 3. تشغيل العداد (3 ثواني) للجميع
+    let timeLeft = 4;
     clearInterval(buzzerInterval);
     buzzerInterval = setInterval(() => {
         timeLeft--;
-        document.getElementById('buzzer-timer-value').textContent = timeLeft;
-        if (hostTimerValue) hostTimerValue.textContent = timeLeft; // تحديث شاشة الهوست
         
+        if (!isHost) {
+            document.getElementById('buzzer-timer-value').textContent = timeLeft;
+        } else {
+            document.getElementById('host-buzzer-timer-value').textContent = timeLeft;
+        }
+
         if (timeLeft <= 0) {
             clearInterval(buzzerInterval);
-            document.getElementById('buzzer-timer-view').classList.add('hidden');
-            document.getElementById('red-alert').classList.remove('hidden');
             
-            if (hostTimerView) hostTimerView.classList.add('hidden'); // إخفاء عند الهوست
+            // تشغيل صوت انتهاء الوقت للجميع
+            const timeupSound = document.getElementById('timeup-sound');
+            timeupSound.currentTime = 0;
+            timeupSound.play().catch(e => console.log("المتصفح يحتاج تفاعل"));
+
+            // إظهار التنبيه الأحمر
+            if (!isHost) {
+                document.getElementById('buzzer-timer-view').classList.add('hidden');
+                document.getElementById('red-alert').classList.remove('hidden');
+            } else {
+                document.getElementById('host-buzzer-timer-view').classList.add('hidden');
+                document.getElementById('host-red-alert').classList.remove('hidden');
+            }
         }
     }, 1000);
 });
 
 socket.on('buzzerReset', () => {
-    const buzzer = document.getElementById('buzzer');
-    buzzer.classList.remove('pressed');
-    buzzer.disabled = false;
-    buzzer.textContent = "اضغط!";
-    
-    if (isHost) {
-        document.getElementById('last-pressed').textContent = 'لا أحد';
-    } else {
-        document.getElementById('status').textContent = 'مستعد؟ اصبعك على الزر!';
-    }
-    
     clearInterval(buzzerInterval);
-    document.getElementById('buzzer-timer-view').classList.add('hidden');
-    document.getElementById('red-alert').classList.add('hidden');
-    
-    // إخفاء مؤقت الهوست عند إعادة التعيين
-    const hostTimerView = document.getElementById('host-buzzer-timer-view');
-    if (hostTimerView) hostTimerView.classList.add('hidden');
+
+    if (!isHost) {
+        const buzzer = document.getElementById('buzzer');
+        buzzer.classList.remove('pressed');
+        buzzer.disabled = false;
+        buzzer.textContent = "اضغط!";
+        document.getElementById('status').textContent = 'مستعد؟ اصبعك على الزر!';
+        document.getElementById('buzzer-timer-view').classList.add('hidden');
+        document.getElementById('red-alert').classList.add('hidden');
+    } else {
+        document.getElementById('last-pressed').textContent = 'لا أحد';
+        document.getElementById('host-buzzer-timer-view').classList.add('hidden');
+        document.getElementById('host-red-alert').classList.add('hidden');
+    }
 });
 
 socket.on('hostTimerUpdate', (timeLeft) => {
@@ -197,7 +208,7 @@ socket.on('hostTimerUpdate', (timeLeft) => {
 });
 
 socket.on('error', (data) => {
-    alert(data.message); 
+    alert(data.message);
     if(data.message.includes('غير موجودة')) {
         localStorage.removeItem('roomCode');
         location.reload();
