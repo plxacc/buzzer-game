@@ -46,13 +46,14 @@
         </div>
     </div>
 
-    <div class="custom-card text-center hidden" id="host-screen">
-        <h3 class="mb-3">كود الغرفة</h3>
-        <div class="bg-light p-3 rounded-3 mb-4 border">
-            <h1 class="display-4 fw-bold text-primary mb-3" id="room-code"></h1>
-            <button class="btn btn-sm btn-outline-primary rounded-pill me-2" onclick="copyCode()">📋 نسخ الكود</button>
-            <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="toggleCodeVisibility()" id="toggle-code-btn">👁️ إخفاء</button>
+    <h5 class="text-muted">آخر من ضغط الزر:</h5>
+        <div class="alert alert-danger fs-4 fw-bold shadow-sm" id="last-pressed">لا أحد</div>
+        
+        <div id="host-buzzer-timer-view" class="alert alert-danger hidden shadow-sm mb-3">
+            <h5>الوقت المتبقي: <span id="host-buzzer-timer-value" class="fw-bold fs-4">3</span> ثواني</h5>
         </div>
+        
+        <button class="btn btn-warning btn-lg w-100 rounded-pill mb-4 shadow-sm fw-bold" onclick="resetBuzzer()">إعادة تفعيل الزر للجميع</button>
 
         <div class="alert alert-warning shadow-sm mb-4">
             <h5 class="mb-3">مؤقت الهوست (10 ثواني): <strong id="host-timer-display" class="fs-4">10</strong></h5>

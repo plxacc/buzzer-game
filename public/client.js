@@ -122,11 +122,10 @@ socket.on('buzzerPressed', (data) => {
     const buzzer = document.getElementById('buzzer');
     const sound = document.getElementById('buzzer-sound');
     
-    // تشغيل الصوت (تم التحسين)
     sound.currentTime = 0;
     let playPromise = sound.play();
     if (playPromise !== undefined) {
-        playPromise.catch(error => { console.log("المتصفح منع الصوت لأنه يحتاج تفاعل المستخدم أولاً"); });
+        playPromise.catch(error => { console.log("المتصفح منع الصوت"); });
     }
 
     if (!isHost) {
@@ -137,28 +136,35 @@ socket.on('buzzerPressed', (data) => {
         } else {
             buzzer.textContent = "مقفول 🔒";
         }
-    }
-
-    if (isHost) {
-        document.getElementById('last-pressed').textContent = data.userName;
-    } else {
         document.getElementById('status').innerHTML = `<strong class='text-danger'>${data.userName}</strong> ضغط الزر أولاً!`;
+    } else {
+        document.getElementById('last-pressed').textContent = data.userName;
     }
 
-    // مؤقت 3 ثواني للجميع (يظهر بشكل تنبيه)
+    // إظهار المؤقت للاعبين
     let timeLeft = 3;
     document.getElementById('buzzer-timer-view').classList.remove('hidden');
     document.getElementById('red-alert').classList.add('hidden');
     document.getElementById('buzzer-timer-value').textContent = timeLeft;
     
+    // إظهار المؤقت للهوست (التحديث الجديد)
+    const hostTimerView = document.getElementById('host-buzzer-timer-view');
+    const hostTimerValue = document.getElementById('host-buzzer-timer-value');
+    if (hostTimerView) hostTimerView.classList.remove('hidden');
+    if (hostTimerValue) hostTimerValue.textContent = timeLeft;
+    
     clearInterval(buzzerInterval);
     buzzerInterval = setInterval(() => {
         timeLeft--;
         document.getElementById('buzzer-timer-value').textContent = timeLeft;
+        if (hostTimerValue) hostTimerValue.textContent = timeLeft; // تحديث شاشة الهوست
+        
         if (timeLeft <= 0) {
             clearInterval(buzzerInterval);
             document.getElementById('buzzer-timer-view').classList.add('hidden');
             document.getElementById('red-alert').classList.remove('hidden');
+            
+            if (hostTimerView) hostTimerView.classList.add('hidden'); // إخفاء عند الهوست
         }
     }, 1000);
 });
@@ -178,6 +184,10 @@ socket.on('buzzerReset', () => {
     clearInterval(buzzerInterval);
     document.getElementById('buzzer-timer-view').classList.add('hidden');
     document.getElementById('red-alert').classList.add('hidden');
+    
+    // إخفاء مؤقت الهوست عند إعادة التعيين
+    const hostTimerView = document.getElementById('host-buzzer-timer-view');
+    if (hostTimerView) hostTimerView.classList.add('hidden');
 });
 
 socket.on('hostTimerUpdate', (timeLeft) => {
@@ -187,7 +197,7 @@ socket.on('hostTimerUpdate', (timeLeft) => {
 });
 
 socket.on('error', (data) => {
-    alert(data.message); // البوستراب اليرت أفضل للواجهة ولكن Alert سريع هنا كافٍ
+    alert(data.message); 
     if(data.message.includes('غير موجودة')) {
         localStorage.removeItem('roomCode');
         location.reload();
